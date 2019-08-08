@@ -1,0 +1,31 @@
+[system rpms]
+slurm-devel-17.11.x
+
+[slurm-api python dependencies]
+
+process:
+  download source from PyPi or gitub if not available on pypi
+  run inital 'python36 setup.py bdist_rpm --distribution el7 --python `which python36` using only system installed python36 via rpm components
+  copy resulting module SPEC and SOURCE to my rpmbuild root
+  extract, rename source to python36-<name>, tar under new name
+  update specfile for name, possible including extra requires as I find and/or '%define debug_package %{nil}' if missing build IDs along way
+  rpbuild -ba <name>.spec
+
+|- python36-pyslurm-17.11.0.11-1
+     |- python36-Cython
+     |- python36-python-nose
+     |- python36-python-sphinx
+|- python36-flask
+     |- python36-werkzeug
+     |- python36-jinja2
+          |- python36-markupsafe
+     |- python36-click
+     |- python36-itsdangerous
+|- python36-flask_restful
+|- python36-itsdangerous
+|- python36-flask_jsonpify
+|- python36-flask_cors
+     |- python36-flask
+     |- python36-six
+|- python36-flask_sqlalchemy in prog
+     |- python36-sqlalchemy

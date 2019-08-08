@@ -1,0 +1,4 @@
+*.log
+*.sqlite
+*.db
+*ssl/*

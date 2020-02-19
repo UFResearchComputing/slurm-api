@@ -1,0 +1,8 @@
+connexion
+flask_cors
+json
+logging
+OpenSSL
+pyslurm
+re
+sapi

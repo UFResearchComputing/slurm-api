@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+#/*
+# *  Admin Interface for SAPI Management 
+#*/
+
+
+#/*
+# *  Imports
+#*/
+import argparse
+import sapi
+import time
+import re
+
+#/* 
+# *  token read function
+#*/
+def parseToken(token):
+  #/* generate a token - uses sapi config settings */
+  try:
+    parsed_token = sapi.auth.decode_token(token)
+  except Exception as e:
+    print("Invalid Token: possible reasons include,")
+    print("   - not a sapi jwt token")
+    print("   - sapi secret has changed")
+    print("   - token not issued by this sapi instance")
+    print("   - mangled token")
+    exit(1)
+  user_name = parsed_token['sub']
+  issuer = parsed_token['iss']
+  issued_at = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(parsed_token['iat']))
+  expiration = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(parsed_token['exp']))
+  
+  timestamp = int(time.time())
+
+  print("User:     " + str(user_name))
+  print("Issuer:   " + str(issuer))
+  print("Created:  " + str(issued_at))
+  if timestamp >= parsed_token['exp']:
+    print("Expires:  " + str(expiration) + "  [EXPIRED]")
+  else:
+    print("Expires:  " + str(expiration))
+
+def createUserToken(user):
+  #/* generate a token - uses sapi config settings */
+  user_token = sapi.auth.generate_token(user)
+  print(str(user_token, "utf-8"))
+
+#/*
+# *  Main 
+#*/
+if __name__ == '__main__':
+
+  #/* read cli args */
+  parser = argparse.ArgumentParser(prog='sapiadm')
+  parser.add_argument("subcommand",type=str, choices=['create','view'])
+  group = parser.add_mutually_exclusive_group(required=True)
+  group.add_argument("-u","--user", help="create a token for this user",type=str,action="store")
+  group.add_argument("-t","--token",help="view details for this token",type=str,action="store")
+  args = parser.parse_args()
+
+  if re.match('create',args.subcommand):
+    if not args.user:
+      print("error: no user provided when creating token")
+      exit(1)
+    createUserToken(args.user)
+    exit(0)
+  elif re.match('view',args.subcommand):
+    if not args.token:
+      print("error: no token provided to inspect")
+      exit(1)
+    parseToken(args.token)
+    exit(0)

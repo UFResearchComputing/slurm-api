@@ -1,0 +1,735 @@
+---
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: "SLURM API"
+  license:
+    name: MIT
+servers:
+  - url: http://example.com
+security:
+  - bearerAuth: []
+paths:
+  /jobs:
+    get:
+      summary: List or search scheduled and running jobs
+      tags:
+        - jobs
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: An array of job records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRecords"
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected Error 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Submit a batch job
+      tags:
+        - jobs
+      requestBody:
+          description: job sbatch options and script
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobRequest'
+      responses:
+        '200':
+          description: Job request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRecord"
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /jobs/{id}:
+    get:
+      summary: Information on a specific job
+      tags:
+        - jobs
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: id
+          in: path
+          required: true
+          description: The slurm job id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A job record 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobRecord"
+        '204':
+          description: No Content 
+        '401':
+          description: Unauthorized
+        '404':
+          description: Job not found by id
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete a running job
+      tags:
+        - jobs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The slurm job id
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Job cancellation requested
+        '404':
+          description: Job not found by id
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /nodes:
+    get:
+      summary: List or search cluster nodes
+      tags:
+        - nodes
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: An array of nodes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Nodes"
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /nodes/{id}:
+    get:
+      summary: Information on a specific node
+      tags:
+        - nodes
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: id
+          in: path
+          required: true
+          description: The name of the node to lookup
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A node object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Node"
+        '204':
+          description: No Content 
+        '401':
+          description: Unauthorized
+        '404':
+          description: Node not found by id
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /partitions:
+    get:
+      summary: List or search cluster partitions
+      tags:
+        - partitions
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: An array of partitions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Partitions"
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /partitions/{id}:
+    get:
+      summary: Information on a specific partition
+      tags:
+        - partitions
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: id
+          in: path
+          required: true
+          description: The name of the partition to lookup
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A partition object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Partition"
+        '204':
+          description: No Content 
+        '401':
+          description: Unauthorized
+        '404':
+          description: Partition not found by id
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reservations:
+    get:
+      summary: List or search cluster reservations
+      tags:
+        - reservations
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: An array of reservations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservations"
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reservations/{id}:
+    get:
+      summary: Information on a specific reservation
+      tags:
+        - reservations
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at once
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: id
+          in: path
+          required: true
+          description: The name of the reservation to lookup
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A reservation object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        '204':
+          description: No Content 
+        '401':
+          description: Unauthorized
+        '404':
+          description: Partition not found by id
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: sapi.auth.decode_token
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string 
+    JobRecord:
+      properties:
+        account:
+          type: string
+        alloc_node:
+          type: string
+        assoc_id:
+          type: integer
+        batch_features:
+          type: string
+        batch_host:
+          type: string
+        billable_tres:
+          type: string
+        command:
+          type: string
+        comment:
+          type: string
+        cpus_per_task:
+          type: integer
+        eligible_time:
+          type: integer
+        end_time:
+          type: integer
+        exc_nodes:
+          type: array
+          items: 
+            type: string
+        exit_code:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        group_id:
+          type: integer
+        job_id:
+          type: integer
+        job_state:
+          type: string
+        mem_per_tres:
+          type: string
+        name:
+          type: string
+        nodes:
+          type: string
+        num_cpus:
+          type: integer
+        num_nodes:
+          type: integer
+        partition:
+          type: string
+        mem_per_cpu:
+          type: boolean
+        min_memory_cpu:
+          type: string
+        mem_per_node:
+          type: boolean
+        min_memory_node:
+          type: integer
+        pn_min_memory:
+          type: integer
+        pn_min_cpus:
+          type: integer
+        priority:
+          type: integer
+        profile:
+          type: integer
+        qos:
+          type: string
+        reboot:
+          type: integer
+        req_nodes:
+          type: array
+          items:
+            type: string
+        resv_name:
+          type: string
+        run_time:
+          type: integer
+        run_time_str:
+          type: string
+        sched_nodes:
+          type: string
+        shared:
+          type: string
+        start_time:
+          type: integer
+        state_reason:
+          type: string
+        std_err:
+          type: string
+        std_in:
+          type: string
+        std_out:
+          type: string
+        submit_time:
+          type: integer
+        suspend_time:
+          type: integer
+        system_comment:
+          type: string
+        time_limit:
+          type: integer
+        time_limit_str:
+          type: string
+        time_min:
+          type: integer
+        tres_alloc_str:
+          type: string
+        tres_req_str:
+          type: string
+        user_id:
+          type: integer
+        work_dir:
+          type: string
+        cpus_allocated:
+          type: array
+          items: {}
+        cpus_alloc_layout:
+          type: array
+          items: {}
+    JobRecords:
+      items:
+        $ref: '#/components/schemas/JobRecord'
+      type: array
+    JobRequest:
+      properties:
+        account: 
+          type: string
+        chdir: 
+          type: string
+        constraint: 
+          type: string
+        cpus_per_task:
+          type: integer
+        error: 
+          type: string
+        exclusive: 
+          type: boolean
+          default: false
+        mail_type: 
+          type: string
+        mail_user:
+          type: string
+        mem_per_cpu: 
+          type: string
+        name: 
+          type: string
+        nodelist:
+          type: string
+        ntasks: 
+          type: integer
+        output: 
+          type: string 
+        partition:
+          type: string
+        qos:   
+          type: string
+        reservation:   
+          type: string
+        ticrypt:
+          type: boolean
+          default: false
+        time:  
+          type: string 
+        wrap:
+          type: string
+    Node:
+      properties:
+        arch:
+          type: string
+        boards:
+          type: integer
+        boot_time:
+          type: integer
+        cores:
+          type: integer
+        core_spec_cnt:
+          type: integer
+        cores_per_socket:
+          type: string
+        cpus:
+          type: integer
+        cpu_load:
+          type: integer
+        cpu_spec_list:
+          type: array
+          items:
+            type: string
+        features:
+          type: string
+        features_active:
+          type: string
+        free_mem:
+          type: integer
+        gres:
+          type: array
+          items:
+            type: string
+        gres_drain:
+          type: string
+        gres_used:
+          type: array
+          items:
+            type: string
+        mcs_label:
+          type: string
+        mem_spec_limit:
+          type: integer
+        name:
+          type: string
+        node_addr:
+          type: string
+        node_hostname:
+          type: string
+        os:
+          type: string
+        owner:
+          type: string
+        partitions:
+          type: array
+          items:
+            type: string
+        real_memory:
+          type: integer
+        slurmd_start_time:
+          type: integer
+        sockets:
+          type: integer
+        threads:
+          type: integer
+        tmp_disk:
+          type: integer
+        weight:
+          type: integer
+        tres_fmt_str:
+          type: string
+        version:
+          type: string
+        reason:
+          type: string
+        reason_time:
+          type: integer
+        reason_uid:
+          type: integer
+        power_mgmt:
+          type: array
+          items: {}
+        energy:
+          type: array
+          items: {}
+        alloc_cpus:
+          type: integer
+        err_cpus:
+          type: integer
+        state:
+          type: string
+        alloc_mem:
+          type: integer
+    Nodes:
+      items:
+        $ref: '#/components/schemas/Node'
+      type: array
+    Partition:
+      properties:
+        allow_accounts:
+          type: string
+        deny_accounts:
+          type: string
+        allow_alloc_nodes:
+          type: string
+        allow_groups:
+          type: string
+        allow_qos:
+          type: string
+        deny_qos:
+          type: string
+        alternate:
+          type: string
+        billing_weights_str:
+          type: string
+        cr_type:
+          type: integer
+        def_mem_per_cpu:
+          type: string
+        def_mem_per_node:
+          type: string
+        default_time:
+          type: integer
+        default_time_str:
+          type: string
+        flags:
+          type: array
+          items: {}
+        grace_time:
+          type: integer
+        max_cpus_per_node:
+          type: string
+        max_mem_per_cpu:
+          type: string
+        max_mem_per_node:
+          type: string
+        max_nodes:
+          type: string
+        max_share:
+          type: integer
+        max_time:
+          type: integer
+        max_time_str:
+          type: string
+        min_nodes:
+          type: integer
+        name:
+          type: string
+        nodes:
+          type: string
+        over_time_limit:
+          type: string
+        preempt_mode:
+          type: string
+        priority_job_factor:
+          type: integer
+        priority_tier:
+          type: integer
+        qos_char:
+          type: string
+        state:
+          type: string
+        total_cpus:
+          type: integer
+        total_nodes:
+          type: integer
+        tres_fmt_str:
+          type: string
+    Partitions:
+      items:
+        $ref: '#/components/schemas/Partition'
+      type: array
+    Reservation:
+      properties:
+        accounts:
+          type: array
+          items:
+            type: string
+        burst_buffer:
+          type: array
+          items:
+            type: string
+        core_cnt:
+          type: integer
+        end_time:
+          type: integer
+        features:
+          type: array
+          items:
+            type: string
+        flags:
+          type: string
+        licenses:
+          type: array
+          items: {}
+        node_cnt:
+          type: integer
+        node_list:
+          type: string
+        partition:
+          type: string
+        start_time:
+          type: integer
+        tres_str:
+          type: array
+          items:
+            type: string
+        users:
+          type: array
+          items:
+            type: string
+    Reservations:
+      items:
+        $ref: '#/components/schemas/Reservation'
+      type: array

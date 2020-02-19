@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+#/* ************************************************************************* */
+#/* Description: A Python REST API for slurm scheduling                       */
+#/* Dependencies:                                                             */
+#/*   - pyslurm (https://github.com/PySlurm)                                  */
+#/* Authors:                                                                  */
+#/*  - whowell@rc.ufl.edu                                                     */
+#/* ************************************************************************* */
+
+#/* ************************************************************************* */
+#/*                                 INCLUDE                                   */
+#/* ************************************************************************* */
+from OpenSSL import SSL
+from connexion.resolver import RestyResolver
+from flask_cors import CORS
+from sapi.configure import configure
+from logging.config import dictConfig
+import connexion
+import logging
+import os
+
+#/* ************************************************************************* */
+#/*                                   MAIN                                    */
+#/* ************************************************************************* */
+if __name__ == '__main__':
+  app = connexion.FlaskApp(__name__)
+  system_conf = '/etc/sapi/swagger.yaml'
+  repo_conf = os.getcwd() + '/../conf/swagger.yaml'
+  if os.path.isfile(system_conf) and os.access(system_conf,os.R_OK):
+    swagger_config = system_conf
+  elif os.path.isfile(repo_conf) and os.access(repo_conf,os.R_OK):
+    swagger_config = repo_conf
+  else:
+    print("error: swagger.yaml does not exist or is not readable. PATHS=[" + 
+          system_conf + "," +
+          repo_conf + "]")
+    exit(1) 
+  app.add_api(swagger_config,
+    arguments={'title': 'Slurm API'},
+    resolver=RestyResolver('sapi')            
+  )
+  #/*  General Configuration   */
+  try:
+    settings = configure()
+  except Exception as e:
+    print("Configuration Error: " + str(e))
+    exit(1)
+
+  #/*  Configure logging before app  */
+  dictConfig({
+    'version': 1,
+    'formatters': {
+      'default': {
+        'format': '[%(asctime)s] %(levelname)s: %(message)s',
+      }
+    },
+    'handlers': {
+      'file': {
+        'class': 'logging.FileHandler',
+        'level': settings.log_level,
+        'formatter': 'default',
+        'filename': settings.log_file,
+      }
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['file'],
+    }
+  })
+  logfile = logging.getLogger('file')
+  settings.logger = logfile
+  logfile.info("Logging to " + str(settings.log_file) + " with " + str(settings.log_level))
+  logfile.info("Using configuration " + str(settings.config_path))
+  if settings.debug:
+    logfile.debug(str(settings))
+
+  #/*  API Startup */
+  if settings.use_ssl:
+    app.run( host=settings.host,
+             port=settings.port,
+             debug=settings.debug, 
+             ssl_context=(settings.ssl_cert,settings.ssl_key)
+    )
+  else:
+    app.run( host=settings.host,
+             port=settings.port,
+             debug=settings.debug, 
+    )

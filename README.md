@@ -1,5 +1,8 @@
-SAPI - SLURM REST API
+DEPRECATED SAPI - SLURM REST API
 =====================
+
+This project has been deprecated and abondoned. Consider using https://slurm.schedmd.com/rest.html instead. 
+
 sapi is a RESTful wrapper around the PySlurm interface utilizing Python Connexion. The goal of slurm-api is to provide a centralized interface for web applications, portals, and CLI utilities to interact with a site's scheduler instead of requiring each such instance to maintain the site's SLURM configuration files and correctly versioned packages.
 
 
